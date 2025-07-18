@@ -16,6 +16,7 @@ router.get("/", async (req, res) => {
       sortOrder = "asc",
       page = 1,
       limit = 20,
+      language,
     } = req.query;
 
     // Build filter object
@@ -44,6 +45,21 @@ router.get("/", async (req, res) => {
       if (maxPrice) filter.price.$lte = parseFloat(maxPrice);
     }
 
+    // Language filter
+    if (!language) {
+      return res.json({
+        products: [],
+        pagination: {
+          currentPage: parseInt(page),
+          totalPages: 0,
+          totalProducts: 0,
+          hasNextPage: false,
+          hasPrevPage: false,
+        },
+      });
+    }
+    filter.language = language;
+
     // Build sort object
     const sort = {};
     sort[sortBy] = sortOrder === "desc" ? -1 : 1;
@@ -59,6 +75,19 @@ router.get("/", async (req, res) => {
 
     // Get total count for pagination
     const total = await Product.countDocuments(filter);
+
+    if (!products.length) {
+      return res.json({
+        products: [],
+        pagination: {
+          currentPage: parseInt(page),
+          totalPages: 0,
+          totalProducts: 0,
+          hasNextPage: false,
+          hasPrevPage: false,
+        },
+      });
+    }
 
     res.json({
       products,

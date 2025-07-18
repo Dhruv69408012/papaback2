@@ -16,6 +16,7 @@ router.get("/", async (req, res) => {
       sortOrder = "asc",
       page = 1,
       limit = 20,
+      language,
     } = req.query;
 
     const filter = {};
@@ -30,6 +31,19 @@ router.get("/", async (req, res) => {
       if (minPrice) filter.price.$gte = parseFloat(minPrice);
       if (maxPrice) filter.price.$lte = parseFloat(maxPrice);
     }
+    if (!language) {
+      return res.json({
+        products: [],
+        pagination: {
+          currentPage: parseInt(page),
+          totalPages: 0,
+          totalProducts: 0,
+          hasNextPage: false,
+          hasPrevPage: false,
+        },
+      });
+    }
+    filter.language = language;
     const sort = {};
     sort[sortBy] = sortOrder === "desc" ? -1 : 1;
     const skip = (parseInt(page) - 1) * parseInt(limit);
@@ -38,6 +52,18 @@ router.get("/", async (req, res) => {
       .skip(skip)
       .limit(parseInt(limit));
     const total = await Remedy.countDocuments(filter);
+    if (!remedies.length) {
+      return res.json({
+        products: [],
+        pagination: {
+          currentPage: parseInt(page),
+          totalPages: 0,
+          totalProducts: 0,
+          hasNextPage: false,
+          hasPrevPage: false,
+        },
+      });
+    }
     res.json({
       products: remedies,
       pagination: {
