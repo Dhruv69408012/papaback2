@@ -97,7 +97,11 @@ router.get("/:id", async (req, res) => {
 // Get all unique symptoms for filtering
 router.get("/symptoms/all", async (req, res) => {
   try {
-    const symptoms = await Remedy.distinct("symptoms");
+    const { language } = req.query;
+    if (!language) {
+      return res.json([]);
+    }
+    const symptoms = await Remedy.distinct("symptoms", { language });
     res.json(symptoms);
   } catch (error) {
     console.error("Remedy symptoms fetch error:", error);
